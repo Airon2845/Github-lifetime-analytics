@@ -9,10 +9,10 @@
 **Цель:** Понять возможности GitHub API и создать работающий прототип сбора данных.
 
 ### Задачи:
-- [ ] **Изучить GitHub REST API**
-  - [ ] Разобраться с эндпоинтом `/repos/{owner}/{repo}/traffic/views`
-  - [ ] Разобраться с эндпоинтом `/repos/{owner}/{repo}/traffic/clones`
-  - [ ] Получить personal access token для доступа к API
+- [х] **Изучить GitHub REST API**
+  - [x] Разобраться с эндпоинтом `/repos/{owner}/{repo}/traffic/views`
+  - [x] Разобраться с эндпоинтом `/repos/{owner}/{repo}/traffic/clones`
+  - [x] Получить personal access token для доступа к API
 
 - [ ] **Изучить GitHub GraphQL API**
   - [ ] Найти способ получения истории звезд (stargazers) репозитория
