@@ -9,7 +9,7 @@
 **Цель:** Понять возможности GitHub API и создать работающий прототип сбора данных.
 
 ### Задачи:
-- [х] **Изучить GitHub REST API**
+- [x] **Изучить GitHub REST API**
   - [x] Разобраться с эндпоинтом `/repos/{owner}/{repo}/traffic/views`
   - [x] Разобраться с эндпоинтом `/repos/{owner}/{repo}/traffic/clones`
   - [x] Получить personal access token для доступа к API
