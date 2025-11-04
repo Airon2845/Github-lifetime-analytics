@@ -577,11 +577,11 @@ HTML = """
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Владелец</label>
-                                <input type="text" id="owner" class="form-input" placeholder="владелец репозитория" required>
+                                <input type="text" id="quickOwner" class="form-input" placeholder="владелец репозитория" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Репозиторий</label>
-                                <input type="text" id="repo" class="form-input" placeholder="название репозитория" required>
+                                <input type="text" id="quickRepo" class="form-input" placeholder="название репозитория" required>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-secondary btn-block" id="statsBtn">
@@ -693,11 +693,11 @@ HTML = """
             }
         }
 
-        // Сбор статистики
+        // Сбор статистики - ИСПРАВЛЕННАЯ ВЕРСИЯ
         document.getElementById('statsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const owner = document.getElementById('owner').value;
-            const repo = document.getElementById('repo').value;
+            const owner = document.getElementById('quickOwner').value;
+            const repo = document.getElementById('quickRepo').value;
             const statsBtn = document.getElementById('statsBtn');
             const originalText = statsBtn.innerHTML;
             
@@ -706,7 +706,14 @@ HTML = """
             statsBtn.disabled = true;
             
             try {
-                const response = await fetch(`/stats/${owner}/${repo}`, {method: 'POST'});
+                const response = await fetch(`/stats/${owner}/${repo}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include' // Важно для передачи cookies
+                });
+                
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -760,7 +767,7 @@ HTML = """
                 document.getElementById('result').innerHTML = `
                     <div class="message message-error">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <div>Ошибка соединения</div>
+                        <div>Ошибка соединения: ${error.message}</div>
                     </div>
                 `;
             } finally {
@@ -779,13 +786,16 @@ HTML = """
             autoCollectBtn.disabled = true;
             
             try {
-                const response = await fetch('/auto-collect', {method: 'POST'});
+                const response = await fetch('/auto-collect', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
                 const data = await response.json();
                 
                 alert(data.message);
                 loadRepos(); // Обновить список после сбора
             } catch (error) {
-                alert('Ошибка при авто-сборе');
+                alert('Ошибка при авто-сборе: ' + error.message);
             } finally {
                 autoCollectBtn.innerHTML = originalText;
                 autoCollectBtn.disabled = false;
