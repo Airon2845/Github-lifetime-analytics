@@ -356,6 +356,11 @@ HTML = """
             width: 100%;
         }
 
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+        }
+
         /* Stats Grid */
         .stats-grid {
             display: grid;
@@ -388,52 +393,117 @@ HTML = """
             gap: 4px;
         }
 
-        /* Repo List */
-        .repo-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        /* Repo Widgets */
+        .repo-widgets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
         }
 
-        .repo-item {
+        .repo-widget {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 2px solid var(--border);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .repo-widget:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary);
+        }
+
+        .repo-widget-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .repo-widget-info {
+            flex: 1;
+        }
+
+        .repo-widget-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .repo-widget-owner {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .repo-widget-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .repo-widget-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .repo-stat {
+            text-align: center;
+            padding: 8px;
             background: var(--light);
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .repo-stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .repo-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .repo-widget-updated {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .refresh-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
             transition: var(--transition);
         }
 
-        .repo-item:hover {
-            background: #eaeef2;
+        .refresh-btn:hover {
+            color: var(--primary);
+            background: var(--light);
         }
 
-        .repo-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .loading .repo-stat-value {
+            color: transparent;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
         }
 
-        .repo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .repo-name {
-            font-weight: 600;
-        }
-
-        .repo-owner {
-            color: var(--text-light);
-            font-size: 0.875rem;
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
         /* Messages */
@@ -502,6 +572,18 @@ HTML = """
             color: var(--text-light);
             font-size: 0.875rem;
         }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -567,10 +649,25 @@ HTML = """
                     </form>
                 </div>
 
-                <!-- Quick Stats -->
+                <!-- Tracked Repositories Widgets -->
                 <div class="card">
                     <div class="card-header">
                         <i class="fas fa-chart-line"></i>
+                        <h2 class="card-title">Мои репозитории</h2>
+                    </div>
+                    <div id="repoWidgets" class="repo-widgets">
+                        <div class="empty-state">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>Нет отслеживаемых репозиториев</h3>
+                            <p>Добавьте репозитории выше, чтобы видеть их статистику здесь</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-bolt"></i>
                         <h2 class="card-title">Быстрый сбор статистики</h2>
                     </div>
                     <form id="statsForm">
@@ -595,26 +692,6 @@ HTML = """
             </div>
 
             <div class="sidebar">
-                <!-- Tracked Repositories -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="fas fa-list"></i>
-                        <h2 class="card-title">Отслеживаемые репозитории</h2>
-                    </div>
-                    <div id="reposList" class="repo-list">
-                        <div class="repo-item">
-                            <div class="repo-info">
-                                <div class="repo-icon">
-                                    <i class="fab fa-github"></i>
-                                </div>
-                                <div>
-                                    <div class="repo-name">Загрузка...</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Auto Collect -->
                 <div class="card auto-collect">
                     <div class="card-header">
@@ -643,7 +720,7 @@ HTML = """
                             <li>Клоны 💾</li>
                             <li>Форки 🍴</li>
                         </ul>
-                        <p>Данные обновляются автоматически</p>
+                        <p>Данные сохраняются навсегда</p>
                     </div>
                 </div>
             </div>
@@ -657,43 +734,165 @@ HTML = """
     </footer>
 
     <script>
-        // Загрузить список репозиториев
-        async function loadRepos() {
-            const reposList = document.getElementById('reposList');
+        // Загрузить виджеты репозиториев
+        async function loadRepoWidgets() {
+            const repoWidgets = document.getElementById('repoWidgets');
             
             try {
                 const response = await fetch('/tracked');
                 const data = await response.json();
                 
                 if (data.repos && data.repos.length > 0) {
-                    reposList.innerHTML = data.repos.map(repo => `
-                        <div class="repo-item">
-                            <div class="repo-info">
-                                <div class="repo-icon">
-                                    <i class="fab fa-github"></i>
+                    repoWidgets.innerHTML = data.repos.map(repo => `
+                        <div class="repo-widget loading" id="widget-${repo.owner}-${repo.name}">
+                            <div class="repo-widget-header">
+                                <div class="repo-widget-info">
+                                    <div class="repo-widget-name">${repo.name}</div>
+                                    <div class="repo-widget-owner">${repo.owner}</div>
                                 </div>
-                                <div>
-                                    <div class="repo-name">${repo.name}</div>
-                                    <div class="repo-owner">${repo.owner}</div>
+                                <div class="repo-widget-actions">
+                                    <button class="refresh-btn" onclick="refreshRepo('${repo.owner}', '${repo.name}')" title="Обновить">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <i class="fas fa-chart-line" style="color: var(--text-light);"></i>
+                            <div class="repo-widget-stats">
+                                <div class="repo-stat">
+                                    <div class="repo-stat-value">-</div>
+                                    <div class="repo-stat-label"><i class="fas fa-star"></i> Stars</div>
+                                </div>
+                                <div class="repo-stat">
+                                    <div class="repo-stat-value">-</div>
+                                    <div class="repo-stat-label"><i class="fas fa-eye"></i> Views</div>
+                                </div>
+                                <div class="repo-stat">
+                                    <div class="repo-stat-value">-</div>
+                                    <div class="repo-stat-label"><i class="fas fa-download"></i> Clones</div>
+                                </div>
+                            </div>
+                            <div class="repo-widget-updated">
+                                <i class="fas fa-clock"></i> Загрузка...
+                            </div>
                         </div>
                     `).join('');
+
+                    // Загружаем статистику для каждого репозитория
+                    data.repos.forEach(repo => {
+                        loadRepoStats(repo.owner, repo.name);
+                    });
                 } else {
-                    reposList.innerHTML = `
-                        <div style="text-align: center; padding: 20px; color: var(--text-light);">
-                            <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 8px;"></i>
-                            <p>Нет отслеживаемых репозиториев</p>
+                    repoWidgets.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-chart-bar"></i>
+                            <h3>Нет отслеживаемых репозиториев</h3>
+                            <p>Добавьте репозитории выше, чтобы видеть их статистику здесь</p>
                         </div>
                     `;
                 }
             } catch (error) {
-                reposList.innerHTML = '<div class="message message-error">Ошибка загрузки</div>';
+                repoWidgets.innerHTML = '<div class="message message-error">Ошибка загрузки репозиториев</div>';
             }
         }
 
-        // Сбор статистики - ИСПРАВЛЕННАЯ ВЕРСИЯ
+        // Загрузить статистику для конкретного репозитория
+        async function loadRepoStats(owner, repo) {
+            const widget = document.getElementById(`widget-${owner}-${repo}`);
+            if (!widget) return;
+
+            try {
+                const response = await fetch(`/stats/${owner}/${repo}`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    widget.classList.remove('loading');
+                    widget.innerHTML = `
+                        <div class="repo-widget-header">
+                            <div class="repo-widget-info">
+                                <div class="repo-widget-name">${repo}</div>
+                                <div class="repo-widget-owner">${owner}</div>
+                            </div>
+                            <div class="repo-widget-actions">
+                                <button class="refresh-btn" onclick="refreshRepo('${owner}', '${repo}')" title="Обновить">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="repo-widget-stats">
+                            <div class="repo-stat">
+                                <div class="repo-stat-value">${data.data.stars}</div>
+                                <div class="repo-stat-label"><i class="fas fa-star"></i> Stars</div>
+                            </div>
+                            <div class="repo-stat">
+                                <div class="repo-stat-value">${data.data.views}</div>
+                                <div class="repo-stat-label"><i class="fas fa-eye"></i> Views</div>
+                            </div>
+                            <div class="repo-stat">
+                                <div class="repo-stat-value">${data.data.clones}</div>
+                                <div class="repo-stat-label"><i class="fas fa-download"></i> Clones</div>
+                            </div>
+                            <div class="repo-stat">
+                                <div class="repo-stat-value">${data.data.unique_visitors}</div>
+                                <div class="repo-stat-label"><i class="fas fa-users"></i> Unique</div>
+                            </div>
+                            <div class="repo-stat">
+                                <div class="repo-stat-value">${data.data.unique_clones}</div>
+                                <div class="repo-stat-label"><i class="fas fa-user-check"></i> Unique Clones</div>
+                            </div>
+                            <div class="repo-stat">
+                                <div class="repo-stat-value">${data.data.forks}</div>
+                                <div class="repo-stat-label"><i class="fas fa-code-branch"></i> Forks</div>
+                            </div>
+                        </div>
+                        <div class="repo-widget-updated">
+                            <i class="fas fa-clock"></i> Обновлено: ${new Date().toLocaleTimeString()}
+                        </div>
+                    `;
+                } else {
+                    widget.classList.remove('loading');
+                    widget.innerHTML = `
+                        <div class="repo-widget-header">
+                            <div class="repo-widget-info">
+                                <div class="repo-widget-name">${repo}</div>
+                                <div class="repo-widget-owner">${owner}</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; color: var(--danger); padding: 20px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>Ошибка загрузки</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                widget.classList.remove('loading');
+                widget.innerHTML = `
+                    <div class="repo-widget-header">
+                        <div class="repo-widget-info">
+                            <div class="repo-widget-name">${repo}</div>
+                            <div class="repo-widget-owner">${owner}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; color: var(--danger); padding: 20px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>Ошибка соединения</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Обновить статистику репозитория
+        async function refreshRepo(owner, repo) {
+            const widget = document.getElementById(`widget-${owner}-${repo}`);
+            if (widget) {
+                widget.classList.add('loading');
+                await loadRepoStats(owner, repo);
+            }
+        }
+
+        // Сбор статистики
         document.getElementById('statsForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const owner = document.getElementById('quickOwner').value;
@@ -708,10 +907,7 @@ HTML = """
             try {
                 const response = await fetch(`/stats/${owner}/${repo}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include' // Важно для передачи cookies
+                    credentials: 'include'
                 });
                 
                 const data = await response.json();
@@ -754,7 +950,7 @@ HTML = """
                             </div>
                         </div>
                     `;
-                    loadRepos(); // Обновить список репозиториев
+                    loadRepoWidgets(); // Обновить виджеты
                 } else {
                     document.getElementById('result').innerHTML = `
                         <div class="message message-error">
@@ -793,7 +989,7 @@ HTML = """
                 const data = await response.json();
                 
                 alert(data.message);
-                loadRepos(); // Обновить список после сбора
+                loadRepoWidgets(); // Обновить виджеты после сбора
             } catch (error) {
                 alert('Ошибка при авто-сборе: ' + error.message);
             } finally {
@@ -811,10 +1007,15 @@ HTML = """
         document.getElementById('trackForm').addEventListener('submit', function() {
             const btn = document.getElementById('trackBtn');
             btn.innerHTML = '<div class="loading"></div> Добавление...';
+            // После добавления репозитория обновляем виджеты
+            setTimeout(loadRepoWidgets, 1000);
         });
 
-        // Загрузить репозитории при загрузке страницы
-        document.addEventListener('DOMContentLoaded', loadRepos);
+        // Загрузить виджеты при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadRepoWidgets);
+
+        // Авто-обновление каждые 5 минут
+        setInterval(loadRepoWidgets, 5 * 60 * 1000);
     </script>
 </body>
 </html>
