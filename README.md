@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![GitHub Analytics Dashboard](![alt text](image.png))
+(![alt text](image.png)
 
 
 **Профессиональная панель мониторинга для анализа статистики GitHub репозиториев**
