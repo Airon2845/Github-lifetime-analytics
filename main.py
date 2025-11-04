@@ -162,69 +162,535 @@ def auto_collect():
 # ==================== ВЕБ-ИНТЕРФЕЙС ====================
 HTML = """
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>GitHub Analytics</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Analytics Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .container { background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 10px 0; }
-        input, button { padding: 10px; margin: 5px; width: 300px; }
-        button { background: #007acc; color: white; border: none; cursor: pointer; }
-        .message { padding: 10px; margin: 10px 0; border-radius: 5px; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
-        .repo { background: white; padding: 10px; margin: 5px 0; border-radius: 5px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2ea44f;
+            --primary-dark: #2c974b;
+            --secondary: #0366d6;
+            --dark: #24292e;
+            --light: #f6f8fa;
+            --border: #e1e4e8;
+            --text: #24292e;
+            --text-light: #586069;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--dark);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--primary);
+        }
+
+        /* Main Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header i {
+            margin-right: 10px;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(46, 164, 79, 0.2);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #0256b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .stat-card {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin: 8px 0;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        /* Repo List */
+        .repo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .repo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--light);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .repo-item:hover {
+            background: #eaeef2;
+        }
+
+        .repo-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .repo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .repo-name {
+            font-weight: 600;
+        }
+
+        .repo-owner {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        /* Messages */
+        .message {
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .message-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Auto Collect Section */
+        .auto-collect {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .auto-collect .card-title {
+            color: white;
+        }
+
+        .auto-collect .btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .auto-collect .btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body>
-    <h1>🚀 GitHub Analytics + Авто-сбор</h1>
-    
-    <div class="container">
-        <h2>1. Сохранить токен</h2>
-        <form action="/token" method="post">
-            <input type="password" name="token" placeholder="ghp_твой_токен" required>
-            <button>Сохранить</button>
-        </form>
-    </div>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fab fa-github"></i>
+                    <span>GitHub Analytics</span>
+                </div>
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Dashboard</span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <div class="container">
-        <h2>2. Добавить репозиторий для авто-слежения</h2>
-        <form action="/track" method="post">
-            <input type="text" name="owner" placeholder="Владелец" required>
-            <input type="text" name="repo" placeholder="Репозиторий" required>
-            <button>➕ Добавить</button>
-        </form>
-    </div>
+    <main class="container">
+        <div class="dashboard">
+            <div class="main-content">
+                <!-- Token Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-key"></i>
+                        <h2 class="card-title">GitHub Token</h2>
+                    </div>
+                    <p style="margin-bottom: 16px; color: var(--text-light);">
+                        Для работы приложения требуется Personal Access Token. 
+                        <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--secondary);">Создать токен</a>
+                    </p>
+                    <form action="/token" method="post" id="tokenForm">
+                        <div class="form-group">
+                            <label class="form-label">GitHub Token</label>
+                            <input type="password" name="token" class="form-input" placeholder="ghp_ваш_токен" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block" id="tokenBtn">
+                            <i class="fas fa-save"></i> Сохранить токен
+                        </button>
+                    </form>
+                </div>
 
-    <div class="container">
-        <h2>3. Собрать статистику сейчас</h2>
-        <form id="statsForm">
-            <input type="text" id="owner" placeholder="Владелец" required>
-            <input type="text" id="repo" placeholder="Репозиторий" required>
-            <button type="submit">📊 Собрать</button>
-        </form>
-    </div>
+                <!-- Add Repository -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-plus-circle"></i>
+                        <h2 class="card-title">Добавить репозиторий</h2>
+                    </div>
+                    <form action="/track" method="post" id="trackForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Владелец</label>
+                                <input type="text" name="owner" class="form-input" placeholder="например, microsoft" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Репозиторий</label>
+                                <input type="text" name="repo" class="form-input" placeholder="например, vscode" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block" id="trackBtn">
+                            <i class="fas fa-plus"></i> Добавить для отслеживания
+                        </button>
+                    </form>
+                </div>
 
-    <div class="container">
-        <h2>📦 Отслеживаемые репозитории</h2>
-        <div id="reposList">Загрузка...</div>
-    </div>
+                <!-- Quick Stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line"></i>
+                        <h2 class="card-title">Быстрый сбор статистики</h2>
+                    </div>
+                    <form id="statsForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Владелец</label>
+                                <input type="text" id="owner" class="form-input" placeholder="владелец репозитория" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Репозиторий</label>
+                                <input type="text" id="repo" class="form-input" placeholder="название репозитория" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-block" id="statsBtn">
+                            <i class="fas fa-chart-bar"></i> Собрать статистику
+                        </button>
+                    </form>
+                </div>
 
-    <div class="container">
-        <h2>🤖 Авто-сбор</h2>
-        <p>Данные собираются автоматически каждый день</p>
-        <button onclick="runAutoCollect()">Запустить сейчас</button>
-    </div>
+                <!-- Results -->
+                <div id="result"></div>
+            </div>
 
-    <div id="result"></div>
+            <div class="sidebar">
+                <!-- Tracked Repositories -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-list"></i>
+                        <h2 class="card-title">Отслеживаемые репозитории</h2>
+                    </div>
+                    <div id="reposList" class="repo-list">
+                        <div class="repo-item">
+                            <div class="repo-info">
+                                <div class="repo-icon">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <div>
+                                    <div class="repo-name">Загрузка...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto Collect -->
+                <div class="card auto-collect">
+                    <div class="card-header">
+                        <i class="fas fa-robot"></i>
+                        <h2 class="card-title">Авто-сбор данных</h2>
+                    </div>
+                    <p style="margin-bottom: 16px; opacity: 0.9;">
+                        Соберите статистику по всем отслеживаемым репозиториям одним кликом
+                    </p>
+                    <button onclick="runAutoCollect()" class="btn btn-block" id="autoCollectBtn">
+                        <i class="fas fa-play"></i> Запустить авто-сбор
+                    </button>
+                </div>
+
+                <!-- Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-info-circle"></i>
+                        <h2 class="card-title">Информация</h2>
+                    </div>
+                    <div style="font-size: 0.875rem; color: var(--text-light);">
+                        <p>📊 Собираемая статистика:</p>
+                        <ul style="margin: 8px 0 8px 16px;">
+                            <li>Звезды ⭐</li>
+                            <li>Просмотры 👀</li>
+                            <li>Клоны 💾</li>
+                            <li>Форки 🍴</li>
+                        </ul>
+                        <p>Данные обновляются автоматически</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>GitHub Analytics Dashboard &copy; 2023 | Отслеживайте статистику ваших репозиториев</p>
+        </div>
+    </footer>
 
     <script>
         // Загрузить список репозиториев
         async function loadRepos() {
-            const response = await fetch('/tracked');
-            const data = await response.json();
-            document.getElementById('reposList').innerHTML = 
-                data.repos.map(r => `<div class="repo">📦 ${r.owner}/${r.name}</div>`).join('') || 'Нет репозиториев';
+            const reposList = document.getElementById('reposList');
+            
+            try {
+                const response = await fetch('/tracked');
+                const data = await response.json();
+                
+                if (data.repos && data.repos.length > 0) {
+                    reposList.innerHTML = data.repos.map(repo => `
+                        <div class="repo-item">
+                            <div class="repo-info">
+                                <div class="repo-icon">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <div>
+                                    <div class="repo-name">${repo.name}</div>
+                                    <div class="repo-owner">${repo.owner}</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chart-line" style="color: var(--text-light);"></i>
+                        </div>
+                    `).join('');
+                } else {
+                    reposList.innerHTML = `
+                        <div style="text-align: center; padding: 20px; color: var(--text-light);">
+                            <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 8px;"></i>
+                            <p>Нет отслеживаемых репозиториев</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                reposList.innerHTML = '<div class="message message-error">Ошибка загрузки</div>';
+            }
         }
 
         // Сбор статистики
@@ -232,6 +698,12 @@ HTML = """
             e.preventDefault();
             const owner = document.getElementById('owner').value;
             const repo = document.getElementById('repo').value;
+            const statsBtn = document.getElementById('statsBtn');
+            const originalText = statsBtn.innerHTML;
+            
+            // Показать загрузку
+            statsBtn.innerHTML = '<div class="loading"></div> Загрузка...';
+            statsBtn.disabled = true;
             
             try {
                 const response = await fetch(`/stats/${owner}/${repo}`, {method: 'POST'});
@@ -239,31 +711,100 @@ HTML = """
                 
                 if (response.ok) {
                     document.getElementById('result').innerHTML = `
-                        <div class="message success">
-                            <h3>✅ ${data.message}</h3>
-                            <p>⭐ Звезды: ${data.data.stars}</p>
-                            <p>👀 Просмотры: ${data.data.views}</p>
-                            <p>💾 Клоны: ${data.data.clones}</p>
-                            <p>🍴 Форки: ${data.data.forks}</p>
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                                <h2 class="card-title">Статистика для ${owner}/${repo}</h2>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-label"><i class="fas fa-star"></i> Звезды</div>
+                                    <div class="stat-value">${data.data.stars}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label"><i class="fas fa-eye"></i> Просмотры</div>
+                                    <div class="stat-value">${data.data.views}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label"><i class="fas fa-download"></i> Клоны</div>
+                                    <div class="stat-value">${data.data.clones}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label"><i class="fas fa-code-branch"></i> Форки</div>
+                                    <div class="stat-value">${data.data.forks}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label"><i class="fas fa-users"></i> Уникальные посетители</div>
+                                    <div class="stat-value">${data.data.unique_visitors}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label"><i class="fas fa-user-check"></i> Уникальные клоны</div>
+                                    <div class="stat-value">${data.data.unique_clones}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 16px; font-size: 0.875rem; color: var(--text-light);">
+                                <i class="fas fa-clock"></i> Данные собраны: ${new Date(data.data.collected_at).toLocaleString()}
+                            </div>
                         </div>
                     `;
-                    loadRepos();
+                    loadRepos(); // Обновить список репозиториев
                 } else {
-                    document.getElementById('result').innerHTML = `<div class="message error">❌ ${data.detail}</div>`;
+                    document.getElementById('result').innerHTML = `
+                        <div class="message message-error">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>${data.detail || 'Произошла ошибка'}</div>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                document.getElementById('result').innerHTML = '<div class="message error">❌ Ошибка</div>';
+                document.getElementById('result').innerHTML = `
+                    <div class="message message-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>Ошибка соединения</div>
+                    </div>
+                `;
+            } finally {
+                // Восстановить кнопку
+                statsBtn.innerHTML = originalText;
+                statsBtn.disabled = false;
             }
         });
 
         // Авто-сбор
         async function runAutoCollect() {
-            const response = await fetch('/auto-collect', {method: 'POST'});
-            const data = await response.json();
-            alert(data.message);
+            const autoCollectBtn = document.getElementById('autoCollectBtn');
+            const originalText = autoCollectBtn.innerHTML;
+            
+            autoCollectBtn.innerHTML = '<div class="loading"></div> Сбор данных...';
+            autoCollectBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/auto-collect', {method: 'POST'});
+                const data = await response.json();
+                
+                alert(data.message);
+                loadRepos(); // Обновить список после сбора
+            } catch (error) {
+                alert('Ошибка при авто-сборе');
+            } finally {
+                autoCollectBtn.innerHTML = originalText;
+                autoCollectBtn.disabled = false;
+            }
         }
 
-        loadRepos();
+        // Добавить обработчики для форм
+        document.getElementById('tokenForm').addEventListener('submit', function() {
+            const btn = document.getElementById('tokenBtn');
+            btn.innerHTML = '<div class="loading"></div> Сохранение...';
+        });
+
+        document.getElementById('trackForm').addEventListener('submit', function() {
+            const btn = document.getElementById('trackBtn');
+            btn.innerHTML = '<div class="loading"></div> Добавление...';
+        });
+
+        // Загрузить репозитории при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadRepos);
     </script>
 </body>
 </html>
