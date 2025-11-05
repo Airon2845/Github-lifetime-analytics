@@ -1,5 +1,4 @@
-# 🚀 GitHub Analytics Dashboard
-
+# 🚀 GitHub Analytics Dashboard V1.1
 ![alt text](image.png)
 
 **Professional dashboard for monitoring GitHub repository analytics**
